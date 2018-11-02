@@ -151,8 +151,7 @@ int MainWindow::test(void)
     chartView->resize(600,400);
     chartView->show();
     static DataSource dataSource;
-    //dataSource.generateData(seriesCount, 10, pointCount);
-    dataSource.update_mdata();
+    dataSource.generateData(1, 1, pointCount);
     QLabel *fpsLabel = new QLabel(chartView);
     QLabel *countLabel = new QLabel(chartView);
     QString countText = QStringLiteral("Total point count: %1");

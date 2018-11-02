@@ -85,7 +85,7 @@ void DataSource::startUpdates(const QList<QXYSeries *> &seriesList, QLabel *fpsL
     m_seriesList = seriesList;
     m_fpsLabel = fpsLabel;
 
-    m_dataUpdater.setInterval(10);
+    m_dataUpdater.setInterval(1000);
     m_dataUpdater.setSingleShot(true);
     QObject::connect(&m_dataUpdater, &QTimer::timeout,
                      this, &DataSource::updateAllSeries);
@@ -112,12 +112,12 @@ void DataSource::generateData(int seriesCount, int rowCount, int colCount)
             QVector<QPointF> points;
             points.reserve(colCount);
             //j:0-10000
-            for (int j(0); j < 2500; j++) {
+            for (int j(0); j < 10000; j++) {
                 qreal x(0);
                 qreal y(0);
                 // data with sin + random component
-                y = height + (yMultiplier * qSin(M_PI / 50 * j)
-                              + 5 + (yMultiplier * QRandomGenerator::global()->generateDouble()));
+                y = height + (yMultiplier * qSin(M_PI / 50 )
+                              + 5 + (4 * QRandomGenerator::global()->generateDouble()));
 
                 // 0.000001 added to make values logaxis compatible
                 x = 0.000001 + 20.0 * (qreal(j) / qreal(colCount)) ;//+ (xAdjustment * qreal(i));
@@ -131,40 +131,31 @@ void DataSource::generateData(int seriesCount, int rowCount, int colCount)
 
 void DataSource::update_mdata()
 {
-    //copy
-    QVector<QVector<QVector<QPointF> > > m_temp_data;
-    m_temp_data.clear();
-    m_temp_data.append(m_data);
 
-    //clear
-    m_data.clear();
+    //1000个为单位向前移动
+    for(int i = 1000; i < 10000; i++)
+    {
+        m_data[0][0][i].setY(m_data[0][0][i - 1000].y());
+        m_data[0][0][i].setX(20.0 * (qreal(i) / qreal(10000)));
+//        m_data[0][0][i] = m_data[0][0][i - 1000];
+    }
 
-    //create new data
-    QVector<QVector<QPointF> > seriesData;
-    QVector<QPointF> points;
-    for (int j(0); j < 2500; j++) {
+    qreal yMultiplier = 2.0;
+
+
+    for(int i = 0; i < 1000; i++)
+    {
         qreal x(0);
         qreal y(0);
         // data with sin + random component
-        y = (2 * qSin(M_PI / 50 * j)
-                      + 5 + (0.3 * QRandomGenerator::global()->generateDouble()));
+        y =  (yMultiplier * qSin(M_PI / 50)
+                      + 5 + (4 * QRandomGenerator::global()->generateDouble()));
 
         // 0.000001 added to make values logaxis compatible
-        x = 0.000001 + 20.0 * (qreal(j) / qreal(10000)) + m_index_count * 5 ;
-        points.append(QPointF(x, y));
+        x = 0.000001 + 20.0 * (qreal(i) / qreal(10000)) ;
+        m_data[0][0][i].setX(x);
+        m_data[0][0][i].setY(y);
     }
 
-    seriesData.append(points);
 
-    m_data.append(seriesData);
-
-    if(m_index_count++ < 4)
-    {
-        m_data.append(m_temp_data);
-    }
-    else
-    {
-        //continue can not clear
-        m_index_count = 0;
-    }
 }
